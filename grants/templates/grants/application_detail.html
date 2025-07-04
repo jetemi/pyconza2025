@@ -1,4 +1,5 @@
 {% extends "wafer/base.html" %}
+{% load crispy_forms_tags %}
 
 {% block title %}Grant Application Details{% endblock %}
 {% block page_title %}Grant Application Details{% endblock %}
@@ -7,27 +8,52 @@
 <div class="container mx-auto px-4 py-4">
     <div class="max-w-4xl mx-auto">
         <div class="flex justify-between items-start pb-3">
+            <a href="{% url 'wafer_user_profile' username=user.username %}" class="btn btn-secondary">← Back to Profile</a>
+            {% if application.status == 'submitted' %}
             <a href="{% url 'grants:application_update' %}" class="btn">Edit Grant Application</a>
+            {% endif %}
         </div>
 
         <div class="py-3">
             <h3 class="text-xl font-semibold">Application Details</h3>
             <div class="pt-2">Submitted on: {{ application.created_at|date:"F d, Y" }}</div>
+            <div class="pt-1">
+                <strong>Status:</strong> 
+                <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'under_review' %}bg-info{% elif application.status == 'waitlisted' %}bg-warning{% else %}bg-secondary{% endif %}">
+                    {{ application.get_status_display }}
+                </span>
+            </div>
+            
+            {% if application.status in 'approved,rejected,waitlisted' and application.decided_by %}
+            <div class="mt-3 p-3 border rounded {% if application.status == 'approved' %}bg-light-success{% elif application.status == 'rejected' %}bg-light-danger{% else %}bg-light-warning{% endif %}">
+                <h5 class="mb-2">Final Decision</h5>
+                {% if application.approved_amount %}
+                <p><strong>Approved Amount:</strong> <span class="text-success">${{ application.approved_amount }}</span></p>
+                {% endif %}
+                {% if application.decision_notes %}
+                <p><strong>Decision Notes:</strong></p>
+                <p class="text-muted">{{ application.decision_notes|linebreaks }}</p>
+                {% endif %}
+                <small class="text-secondary">
+                    Decision made on {{ application.decided_at|date:"F d, Y" }}
+                </small>
+            </div>
+            {% endif %}
         </div>
 
         <div class="py-3">
             <h3 class="text-xl font-semibold">Your Motivation</h3>
-            <div class="pt-2">{{ application.motivation|linebreaks }}</div>
+            <div class="pt-2">{{ application.motivation }}</div>
         </div>
 
         <div class="py-3">
             <h3 class="text-xl font-semibold">Your Contributions</h3>
-            <div class="pt-2">{{ application.contribution|linebreaks }}</div>
+            <div class="pt-2">{{ application.contribution }}</div>
         </div>
 
         <div class="py-3">
             <h3 class="text-xl font-semibold">Financial Need</h3>
-            <div class="pt-2">{{ application.financial_need|linebreaks }}</div>
+            <div class="pt-2">{{ application.financial_need }}</div>
         </div>
 
         <!-- Personal Information Section -->

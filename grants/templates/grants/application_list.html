@@ -1,0 +1,65 @@
+{% extends "wafer/base.html" %}
+
+{% block title %}Grant Applications{% endblock %}
+{% block page_title %}Grant Applications{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-4">
+    <div class="mb-4">
+        <a href="{% url 'wafer_user_profile' username=user.username %}" class="btn btn-secondary">← Back to Profile</a>
+    </div>
+    
+    <div class="mb-4 p-3 bg-light rounded">
+        <h5 class="mb-1">Grant Budget Tracking</h5>
+        <p class="mb-0">
+            <strong>Approved:</strong> ${{ approved_total }} / ${{ total_budget }}
+            <span class="text-muted">
+                (${{ remaining_budget }} remaining)
+            </span>
+        </p>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Applicant</th>
+                    <th>Status</th>
+                    <th>Submitted</th>
+                    <th>Reviews</th>
+                    <th>Approved Amount</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for application in applications %}
+                <tr>
+                    <td>{{ application.user.username }}</td>
+                    <td>
+                        <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'under_review' %}bg-info{% elif application.status == 'waitlisted' %}bg-warning{% else %}bg-secondary{% endif %}">
+                            {{ application.get_status_display }}
+                        </span>
+                    </td>
+                    <td>{{ application.created_at|date:"Y-m-d" }}</td>
+                    <td>{{ application.reviews.count }}</td>
+                    <td>
+                        {% if application.approved_amount %}
+                        ${{ application.approved_amount }}
+                        {% else %}
+                        -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'grants:application_review' application.pk %}">Review</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No applications found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

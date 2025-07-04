@@ -45,6 +45,10 @@
 
   {% endif %}
 
+  {% if perms.grants.add_grantreview %}
+  <a href="{% url 'grants:application_list' %}" class="btn btn-secondary w-full">{% trans 'Review Grant Applications' %}</a>
+  {% endif %}
+
 </nav>
 {% endif %}
 {% endblock side_menu %}

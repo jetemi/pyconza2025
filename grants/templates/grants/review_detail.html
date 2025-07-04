@@ -1,0 +1,205 @@
+{% extends "wafer/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}Review Grant Application - {{ application.user.username }}{% endblock %}
+{% block page_title %}Review Grant Application{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-4">
+    <div class="max-w-6xl mx-auto">
+        
+        <div class="mb-4">
+            <a href="{% url 'grants:application_list' %}" class="btn btn-secondary">
+                ← Back to Applications List
+            </a>
+        </div>
+
+        <div class="bg-light p-4 rounded mb-4">
+            <h2 class="mb-3">Application by {{ application.user.username }}</h2>
+            
+            <table class="table">
+                <tbody>
+                    <tr>
+                        <th>Submitted</th>
+                        <td>{{ application.created_at|date:"F d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status</th>
+                        <td>
+                            <span class="badge {% if application.status == 'approved' %}bg-success{% elif application.status == 'rejected' %}bg-danger{% elif application.status == 'under_review' %}bg-info{% elif application.status == 'waitlisted' %}bg-warning{% else %}bg-secondary{% endif %}">
+                                {{ application.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    {% if application.request_travel %}
+                    <tr>
+                        <th>Travel Requested</th>
+                        <td>
+                            ${{ application.travel_amount|default:"Not specified" }}
+                            {% if application.transportation_type %}
+                                ({{ application.get_transportation_type_display }})
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>From</th>
+                        <td>{{ application.travel_from_city }}, {{ application.travel_from_country.name }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if application.request_accommodation %}
+                    <tr>
+                        <th>Accommodation</th>
+                        <td>{{ application.accommodation_nights }} nights</td>
+                    </tr>
+                    {% endif %}
+                    {% if application.request_ticket %}
+                    <tr>
+                        <th>Conference Ticket</th>
+                        <td>Yes</td>
+                    </tr>
+                    {% endif %}
+                    
+                    {% if application.status in 'approved,rejected,waitlisted' and application.decided_by %}
+                    <tr>
+                        <th colspan="2" class="text-success">Final Decision</th>
+                    </tr>
+                    {% if application.approved_amount %}
+                    <tr>
+                        <th>Approved Amount</th>
+                        <td>${{ application.approved_amount }}</td>
+                    </tr>
+                    {% endif %}
+                    <tr>
+                        <th>Decided by</th>
+                        <td>{{ application.decided_by.username }}</td>
+                    </tr>
+                    <tr>
+                        <th>Decision Date</th>
+                        <td>{{ application.decided_at|date:"F d, Y H:i" }}</td>
+                    </tr>
+                    {% if application.decision_notes %}
+                    <tr>
+                        <th>Decision Notes</th>
+                        <td>{{ application.decision_notes }}</td>
+                    </tr>
+                    {% endif %}
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+            
+        <div class="mb-4">
+            <h3 class="text-xl font-semibold mb-3">Application Details</h3>
+            <table class="table table-bordered">
+                <tbody>
+                    <tr>
+                        <th scope="row" class="w-25">Motivation</th>
+                        <td>{{ application.motivation|linebreaks }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="w-25">Contribution</th>
+                        <td>{{ application.contribution|linebreaks }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="w-25">Financial Need</th>
+                        <td>{{ application.financial_need|linebreaks }}</td>
+                    </tr>
+                    {% if application.additional_info %}
+                    <tr>
+                        <th scope="row" class="w-25">Additional Information</th>
+                        <td>{{ application.additional_info|linebreaks }}</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>Your Review</h4>
+                        {% if user_review %}
+                        <small class="text-info">You reviewed this on {{ user_review.updated_at|date:"F d, Y H:i" }}</small>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        {% if is_readonly %}
+                        <div class="alert alert-warning">
+                            <strong>Read Only:</strong> This application has been finalized.
+                        </div>
+                        {% if user_review %}
+                        <p><strong>Your Score:</strong> {{ user_review.score }}/5</p>
+                        {% if user_review.suggested_amount %}
+                        <p><strong>Suggested Amount:</strong> ${{ user_review.suggested_amount }}</p>
+                        {% endif %}
+                        {% if user_review.notes %}
+                        <p><strong>Your Notes:</strong></p>
+                        <p class="text-muted">{{ user_review.notes|linebreaks }}</p>
+                        {% endif %}
+                        {% endif %}
+                        {% else %}
+                        <form method="post">
+                            {% csrf_token %}
+                            {% crispy review_form %}
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if can_decide %}
+                <div class="card mt-4">
+                    <div class="card-header bg-warning">
+                        <h4>Final Decision (Admin Only)</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="post" action="?action=decide">
+                            {% csrf_token %}
+                            {% crispy decision_form %}
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h4>All Reviews ({{ reviews.count }})</h4>
+                    </div>
+                    <div class="card-body">
+                        {% if reviews %}
+                        {% for review in reviews %}
+                        <div class="border-bottom pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <strong>{{ review.reviewer.username }}</strong>
+                                <span class="badge bg-primary">{{ review.score }}/5</span>
+                            </div>
+                            {% if review.suggested_amount %}
+                            <p class="text-success mb-1"><strong>Suggested:</strong> ${{ review.suggested_amount }}</p>
+                            {% endif %}
+                            {% if review.notes %}
+                            <p class="text-muted mb-1">{{ review.notes }}</p>
+                            {% endif %}
+                            <small class="text-secondary">{{ review.updated_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                        {% endfor %}
+                        
+                        <div class="mt-3 p-3 bg-light rounded">
+                            <strong>Summary:</strong>
+                            {% if average_score %}
+                            <p class="mb-1">Average Score: {{ average_score }}/5 ({{ reviews|length }} review{{ reviews|length|pluralize }})</p>
+                            {% else %}
+                            <p class="mb-1">Average Score: No reviews yet</p>
+                            {% endif %}
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No reviews submitted yet.</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
