@@ -33,17 +33,29 @@
   {% if GRANT_APPLICATIONS_OPEN %}
 
   {% if object.grant_application %}
-
   <a href="{% url 'grants:application_detail' %}" class="btn btn-secondary w-full">
     {% trans 'View My Grant Application' %}
   </a>
   {% else %}
-
   <a href="{% url 'grants:application_create' %}" class="btn btn-secondary w-full">{% trans 'Apply for Grant' %}</a>
-
   {% endif %}
 
   {% endif %}
+
+
+  {# Visa letter section #}
+  {% if VISA_LETTER_REQUESTS_OPEN %}
+
+  {% if object.visa_letter %}
+  <a href="{% url 'visa:visa_letter_form' %}" class="btn btn-secondary w-full">
+    {% trans 'View Visa Letter Request' %}
+  </a>
+  {% else %}
+  <a href="{% url 'visa:visa_letter_form' %}" class="btn btn-secondary w-full">{% trans 'Request Visa Letter' %}</a>
+  {% endif %}
+
+  {% endif %}
+
 
   {% if perms.grants.add_grantreview %}
   <a href="{% url 'grants:application_list' %}" class="btn btn-secondary w-full">{% trans 'Review Grant Applications' %}</a>

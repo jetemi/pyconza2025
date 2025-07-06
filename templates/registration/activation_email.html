@@ -1,136 +1,49 @@
+{% extends '_base_email.html' %}
 {% load i18n %}
-<!doctype html>
-<html lang="en">
 
-<head>
-    <title>{{ site.name }} {% trans "registration" %}</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+{% block title %}
+{% trans "registration" %}
+{% endblock title %}
 
-        .email-container {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-        }
+{% block heading %}
+{% trans "Verify Your Email Address" %}
+{% endblock heading %}
 
-        .header {
-            background-color: #ffd343;
-            padding: 20px;
-            text-align: center;
-        }
+{% block content %}
 
-        .logo {
-            max-width: 200px;
-            height: auto;
-        }
+<p>
+    {% blocktrans with site_domain=site.domain %}
+    You (or someone pretending to be you) have asked to register an account at
+    <strong>{{ site_domain }}</strong>.
+    If this wasn't you, please ignore this email and your address will be removed from our records.
+    {% endblocktrans %}
+</p>
 
-        .content {
-            padding: 25px;
-            background-color: #ffffff;
-        }
+<div class="button-container">
+    <a href="https://{{ site.domain }}{% url 'registration_activate' activation_key %}" class="verification-button">{%
+        trans "Verify Email Address" %}</a>
+</div>
 
-        .button-container {
-            text-align: center;
-            margin: 30px 0;
-        }
+<p class="verification-link">
+    {% trans "If the button above doesn't work, please copy and paste the following link into your browser:"
+    %}
+</p>
+<p class="verification-link">
+    https://{{ site.domain }}{% url 'registration_activate' activation_key %}
+</p>
 
-        .verification-button {
-            background-color: #3776ab;
-            color: white;
-            padding: 12px 24px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-            display: inline-block;
-            border: none;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+<div class="divider"></div>
 
-        .verification-button:hover {
-            background-color: #2d5f8b;
-        }
+<p>
+    {% blocktrans with expiration_days=expiration_days %}
+    This verification link will expire in {{ expiration_days }} days.
+    {% endblocktrans %}
+</p>
 
-        .verification-link {
-            margin-top: 15px;
-            word-break: break-all;
-            font-size: 14px;
-            color: #666;
-        }
+<p>
+    {% blocktrans with site_domain=site.domain %}
+    Sincerely,<br> {{ site_domain }} Management
+    {% endblocktrans %}
+</p>
 
-        .footer {
-            background-color: #f7f7f7;
-            padding: 15px;
-            text-align: center;
-            font-size: 14px;
-            color: #777;
-        }
-
-        .divider {
-            border-top: 1px solid #eeeeee;
-            margin: 20px 0;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="email-container">
-        <div class="header">
-            <img src="https://za.pycon.org/static/img/header-logo-w-2025.png" alt="PyCon (ZA) Africa Logo" class="logo">
-        </div>
-        <div class="content">
-            <h2>{% trans "Verify Your Email Address" %}</h2>
-
-            <p>{% trans "Hello," %}</p>
-
-            <p>
-                {% blocktrans with site_domain=site.domain %}
-                You (or someone pretending to be you) have asked to register an account at
-                <strong>{{ site_domain }}</strong>.
-                If this wasn't you, please ignore this email and your address will be removed from our records.
-                {% endblocktrans %}
-            </p>
-
-            <div class="button-container">
-                <a href="https://{{ site.domain }}{% url 'registration_activate' activation_key %}"
-                    class="verification-button">{% trans "Verify Email Address" %}</a>
-            </div>
-
-            <p class="verification-link">
-                {% trans "If the button above doesn't work, please copy and paste the following link into your browser:"
-                %}
-            </p>
-            <p class="verification-link">
-                https://{{ site.domain }}{% url 'registration_activate' activation_key %}
-            </p>
-
-            <div class="divider"></div>
-
-            <p>
-                {% blocktrans with expiration_days=expiration_days %}
-                This verification link will expire in {{ expiration_days }} days.
-                {% endblocktrans %}
-            </p>
-
-            <p>
-                {% blocktrans with site_domain=site.domain %}
-                Sincerely,<br> {{ site_domain }} Management
-                {% endblocktrans %}
-            </p>
-        </div>
-        <div class="footer">
-            <p>© {% now "Y" %} PyCon Africa. {% trans "All rights reserved." %}</p>
-        </div>
-    </div>
-</body>
-
-</html>
+{% endblock content %}

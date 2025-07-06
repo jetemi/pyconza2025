@@ -1,18 +1,33 @@
 from django.contrib import admin
 from django.http import HttpResponse
-from openpyxl import Workbook
+from django.utils import timezone
+import openpyxl
 from openpyxl.utils import get_column_letter
 from .models import GrantApplication, GrantReview
 
 
 @admin.register(GrantApplication)
 class GrantApplicationAdmin(admin.ModelAdmin):
-    list_display = ('user', 'status', 'approved_amount', 'created_at', 'request_travel', 'request_accommodation', 'request_ticket', 'travel_from_display')
-    list_filter = ('status', 'created_at', 'request_travel', 'request_accommodation', 'request_ticket', 'gender', 'current_role', 'decided_by')
-    search_fields = ('user__username', 'user__email', 'travel_from_city', 'travel_from_country')
-    readonly_fields = ('created_at', 'updated_at')
-    raw_id_fields = ('user', 'decided_by')
+    list_display = [
+        'user', 'full_name', 'travel_from_display', 'travel_amount', 
+        'request_travel', 'request_accommodation', 'request_ticket', 'created_at',
+        'travel_from_display', 'status', 'approved_amount'
+    ]
+    list_filter = [
+        'gender', 'transportation_type', 
+        'request_travel', 'request_accommodation', 'request_ticket',
+        'created_at', 'decided_at', 'decided_by', 'status'
+    ]
+    search_fields = [
+        'user__username', 'user__email', 'user__first_name', 'user__last_name',
+        'travel_from_city', 'travel_from_country'
+    ]
+    readonly_fields = [
+        'user', 'created_at', 'updated_at'
+    ]
     actions = ['export_to_excel']
+
+    raw_id_fields = ('user', 'decided_by')
     
     fieldsets = (
         ('Application Info', {
@@ -40,52 +55,54 @@ class GrantApplicationAdmin(admin.ModelAdmin):
     )
     
     def export_to_excel(self, request, queryset):
-        wb = Workbook()
+        """Export selected grant applications to Excel."""
+        wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "Grant Applications"
+        ws.title = 'Grant Applications'
         
         headers = [
-            'User', 'Email', 'First Name', 'Last Name', 'Status', 'Created At',
-            'Gender', 'Gender Details', 'Current Role', 'Current Role Details',
-            'Motivation', 'Contribution', 'Financial Need', 'Additional Info',
-            'Request Travel', 'Travel From City', 'Travel From Country', 'Travel Amount', 'Transportation Type',
-            'Request Accommodation', 'Accommodation Nights', 'Request Ticket',
-            'Approved Amount', 'Decision Notes', 'Decided By', 'Decided At'
+            'Username', 'First Name', 'Last Name', 'Email', 'Gender', 'Gender Details',
+            'Current Role', 'Current Role Details', 'Motivation', 'Contribution', 
+            'Financial Need', 'Request Travel', 'Travel From City', 'Travel From Country',
+            'Travel Amount', 'Transportation Type', 'Request Accommodation', 
+            'Accommodation Nights', 'Request Ticket', 'Additional Info', 'Created At'
         ]
         
         for col, header in enumerate(headers, 1):
-            ws[f'{get_column_letter(col)}1'] = header
+            ws.cell(row=1, column=col, value=header)
         
-        for row, app in enumerate(queryset.select_related('user', 'decided_by'), 2):
-            ws[f'A{row}'] = app.user.username
-            ws[f'B{row}'] = app.user.email
-            ws[f'C{row}'] = app.user.first_name
-            ws[f'D{row}'] = app.user.last_name
-            ws[f'E{row}'] = app.get_status_display()
-            ws[f'F{row}'] = app.created_at.strftime('%Y-%m-%d %H:%M:%S')
-            ws[f'G{row}'] = app.get_gender_display() if app.gender else ''
-            ws[f'H{row}'] = app.gender_details or ''
-            ws[f'I{row}'] = app.get_current_role_display() if app.current_role else ''
-            ws[f'J{row}'] = app.current_role_details or ''
-            ws[f'K{row}'] = app.motivation or ''
-            ws[f'L{row}'] = app.contribution or ''
-            ws[f'M{row}'] = app.financial_need or ''
-            ws[f'N{row}'] = app.additional_info or ''
-            ws[f'O{row}'] = 'Yes' if app.request_travel else 'No'
-            ws[f'P{row}'] = app.travel_from_city or ''
-            ws[f'Q{row}'] = app.travel_from_country.name if app.travel_from_country else ''
-            ws[f'R{row}'] = str(app.travel_amount) if app.travel_amount else ''
-            ws[f'S{row}'] = app.get_transportation_type_display() if app.transportation_type else ''
-            ws[f'T{row}'] = 'Yes' if app.request_accommodation else 'No'
-            ws[f'U{row}'] = str(app.accommodation_nights) if app.accommodation_nights else ''
-            ws[f'V{row}'] = 'Yes' if app.request_ticket else 'No'
-            ws[f'W{row}'] = str(app.approved_amount) if app.approved_amount else ''
-            ws[f'X{row}'] = app.decision_notes or ''
-            ws[f'Y{row}'] = app.decided_by.username if app.decided_by else ''
-            ws[f'Z{row}'] = app.decided_at.strftime('%Y-%m-%d %H:%M:%S') if app.decided_at else ''
+        for row, application in enumerate(queryset.select_related('user'), 2):
+            ws.cell(row=row, column=1, value=application.user.username)
+            ws.cell(row=row, column=2, value=application.user.first_name)
+            ws.cell(row=row, column=3, value=application.user.last_name)
+            ws.cell(row=row, column=4, value=application.user.email)
+            ws.cell(row=row, column=5, value=application.gender)
+            ws.cell(row=row, column=6, value=application.gender_details)
+            ws.cell(row=row, column=7, value=application.current_role)
+            ws.cell(row=row, column=8, value=application.current_role_details)
+            ws.cell(row=row, column=9, value=application.motivation)
+            ws.cell(row=row, column=10, value=application.contribution)
+            ws.cell(row=row, column=11, value=application.financial_need)
+            ws.cell(row=row, column=12, value=application.request_travel)
+            ws.cell(row=row, column=13, value=application.travel_from_city)
+            ws.cell(row=row, column=14, value=application.travel_from_country.name)
+            ws.cell(row=row, column=15, value=application.travel_amount)
+            ws.cell(row=row, column=16, value=application.transportation_type)
+            ws.cell(row=row, column=17, value=application.request_accommodation)
+            ws.cell(row=row, column=18, value=application.accommodation_nights)
+            ws.cell(row=row, column=19, value=application.request_ticket)
+            ws.cell(row=row, column=20, value=application.additional_info)
+            ws.cell(row=row, column=21, value=application.created_at.strftime('%Y-%m-%d %H:%M:%S') if application.created_at else '')
         
-        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="grant_applications.xlsx"'
+        for col in range(1, len(headers) + 1):
+            column_letter = get_column_letter(col)
+            ws.column_dimensions[column_letter].width = 20
+        
+        response = HttpResponse(
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        response['Content-Disposition'] = f'attachment; filename="grant_applications_{timezone.now().strftime("%Y%m%d_%H%M%S")}.xlsx"'
+        
         wb.save(response)
         return response
     

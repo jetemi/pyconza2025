@@ -19,6 +19,7 @@ INSTALLED_APPS = (
     "django_cotton",
     "website",  # for website static content that should be version controlled
     "grants",
+    "visa",  # for visa invitation letter requests
     "django_countries",  # django-countries for country selection
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -179,6 +180,18 @@ BUILD_DIR = BASE_DIR / "mirror"
 WAFER_PUBLIC_ATTENDEE_LIST = False
 
 GRANT_APPLICATIONS_OPEN = False
+VISA_LETTER_REQUESTS_OPEN = False
+
+
+VISA_ORGANISER_NAME = "Adam Piskorski"
+VISA_ORGANISER_ROLE = "Director of the Python Software Society of South Africa"
+VISA_ORGANISER_CONTACT_EMAIL = "pyconza@piskorski.me"
+VISA_ORGANISER_CONTACT_PHONE = "+27 79 899 2319"
+VISA_CONFERENCE_LOCATION = "Johannesburg, South Africa"
+VISA_DEFAULT_EMBASSY_ADDRESS = "Embassy of South Africa"
+WEBSITE_URL = "https://africa.pycon.org"
+CONFERENCE_LOCATION = "Johannesburg, South Africa"
+CONFERENCE_DATES = "8 - 12 October 2025"
 
 WAFER_TALK_REVIEW_SCORES = (0, 5)
 GRANT_TOTAL_BUDGET = 20000

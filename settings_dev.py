@@ -13,3 +13,4 @@ WAFER_TALKS_OPEN = True
 # NB: Dont turn this setting on in prod until the program team is happy with the setup
 
 GRANT_APPLICATIONS_OPEN = True
+VISA_LETTER_REQUESTS_OPEN = True
